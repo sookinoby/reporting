@@ -5,11 +5,26 @@
   <version>0.0.1-SNAPSHOT</version>
   <name>reporting services</name>
   <description>used to create pdf report</description>
+    <build>
+        <resources>
+            <resource>src/main/resources</resource>
+        </resources>
+    </build>
    <dependencies>
 	 <dependency>
 	<groupId>com.google.code.gson</groupId>
 	<artifactId>gson</artifactId>
 	<version>2.6.2</version>
 	</dependency>
+       <dependency>
+           <groupId>org.apache.pdfbox</groupId>
+           <artifactId>pdfbox</artifactId>
+           <version>2.0.0</version>
+       </dependency>
+       <dependency>
+           <groupId>com.github.dhorions</groupId>
+           <artifactId>boxable</artifactId>
+           <version>1.4</version>
+       </dependency>
   </dependencies>
 </project>
