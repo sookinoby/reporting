@@ -1,5 +1,11 @@
 package converter;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+
 import pojo.reporting.com.r2m.Response;
 
 public class Main {

@@ -14,6 +14,7 @@ public class GameData {
 
  public void setName(String name) {
   this.name = name;
+
  }
 
  public String getSname() {

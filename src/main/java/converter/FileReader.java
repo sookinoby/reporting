@@ -1,23 +1,30 @@
 package converter;
 
-import com.google.common.io.Files;
-import com.google.gson.Gson;
+import java.awt.Color;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+
+import com.google.common.io.Files;
+import com.google.gson.Gson;
+
+import be.quodlibet.boxable.BaseTable;
+import be.quodlibet.boxable.Cell;
+import be.quodlibet.boxable.HorizontalAlignment;
+import be.quodlibet.boxable.Row;
+import be.quodlibet.boxable.VerticalAlignment;
 import pojo.reporting.com.r2m.Questions;
 import pojo.reporting.com.r2m.Response;
 import pojo.reporting.com.r2m.Wrong;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
 
 public class FileReader {
 private String fileName;
@@ -116,25 +123,41 @@ public Response readFileAndReturnJSON(String fn)
 			page.setMediaBox(new PDRectangle(PDRectangle.A4.getHeight(), PDRectangle.A4.getWidth()));
 			document.addPage(page);
 			PDFont font = PDType1Font.HELVETICA_BOLD;
-			String abc = getClass().getResource("/r2m_logo2.png").toString();
-			BufferedImage bckimg = ImageIO.read(new File("/Users/alexaravind/Desktop/ideaProjects/reporting/target/classes/r2m_logo2.png"));
+			String path = getClass().getResource("/r2m_logo1.png").getPath();
+		//	BufferedImage bckimg = ImageIO.read(new File("/Users/alexaravind/Desktop/ideaProjects/reporting/target/classes/r2m_logo2.png"));
 
-
-		//	PDImageXObject pdImage = PDImageXObject.createFromFile(getClass().getResource("/r2m_logo2.png").toString(), document);
+		
+			PDImageXObject pdImage = PDImageXObject.createFromFile(path, document);
 			PDPageContentStream contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true);
-			float scale = 1;
-		//	contentStream.drawImage(pdImage, 20, 560, pdImage.getWidth()*scale, pdImage.getHeight()*scale);
+			float scale = 0.75f;
+			int begin_x = 570;
+			int begin_y = 570;
+			contentStream.drawImage(pdImage, 20, 530, pdImage.getWidth()*scale, pdImage.getHeight()*scale);
 			contentStream.beginText();
-			contentStream.setFont(font, 20);
-			contentStream.newLineAtOffset(5,560);
-		//	contentStream.showText("Hello World");
-			contentStream.newLine();
-
+			contentStream.setFont(font, 12.0f);
+			contentStream.newLineAtOffset(begin_x,begin_y);
+			contentStream.showText("Student Name:");
 			contentStream.endText();
-			contentStream.drawLine(0, 530, PDRectangle.A4.getWidth(), 530);
+			
+			contentStream.beginText();
+			contentStream.newLineAtOffset(begin_x + 100,begin_y);
+			contentStream.showText("Suresh");
+			contentStream.endText();
+			
+			contentStream.beginText();
+			contentStream.newLineAtOffset(begin_x,begin_y-20);
+			contentStream.showText("Student Grade:");
+			contentStream.endText();
+			
+			contentStream.beginText();
+			contentStream.newLineAtOffset(begin_x+100,begin_y-20);
+			contentStream.showText("4");
+			contentStream.endText();
+			
+			contentStream.drawLine(0, 540, page.getBleedBox().getWidth(), 540);
 			contentStream.close();
-
-			/*
+			
+		
 
 			//Initialize table
 			float margin = 40;
@@ -142,13 +165,15 @@ public Response readFileAndReturnJSON(String fn)
 			float yStartNewPage = page.getMediaBox().getHeight() - (2 * margin);
 			float yStart = yStartNewPage;
 			float bottomMargin = 0;
+			float cell_font = 11.0f;
 // Create a new font object selecting one of the PDF base fonts
 
 			// Start a new content stream which will "hold" the to be created content
 			float cell_width = 100/11f;
 
-			BaseTable table = new BaseTable(yStart, yStartNewPage, bottomMargin, 600, margin, document, page, true,
+			BaseTable table = new BaseTable(yStart, yStartNewPage, bottomMargin, tableWidth, margin, document, page, true,
 					true);
+			
 
 
 
@@ -156,13 +181,17 @@ public Response readFileAndReturnJSON(String fn)
 			Row<PDPage> headerRow = table.createRow(25f);
 			Cell<PDPage> cell;
 			cell = headerRow.createCell(cell_width, this.operatorSymbol);
+			cell.setFontSize(cell_font);
 			cell.setFont(PDType1Font.HELVETICA_BOLD);
+			
 			cell.setFillColor(Color.YELLOW);
 			cell.setAlign(HorizontalAlignment.CENTER);
 			cell.setValign(VerticalAlignment.MIDDLE);
 			for(int i=0; i<questions.size()/10;i++)
-			{
+			{	
+				
 				cell = headerRow.createCell(cell_width, Integer.toString(i));
+				cell.setFontSize(cell_font);
 				cell.setFont(PDType1Font.HELVETICA_BOLD);
 				cell.setFillColor(Color.YELLOW);
 				cell.setAlign(HorizontalAlignment.CENTER);
@@ -172,16 +201,19 @@ public Response readFileAndReturnJSON(String fn)
 			int m =0;
 			for (ArrayList<Questions> questions_row: table_result) {
 				Row<PDPage> row = table.createRow(25f);
+				
 					cell = row.createCell(cell_width,Integer.toString(m));
 					cell.setValign(VerticalAlignment.MIDDLE);
 					cell.setAlign(HorizontalAlignment.CENTER);
 					cell.setFillColor(Color.WHITE);
-
+					cell.setFontSize(cell_font);
 				for(Questions q: questions_row) {
 
 					cell = row.createCell(cell_width, q.getStudentAnswer());
+					cell.setFontSize(cell_font);
 					if(q.isRight()) {
 						cell.setFillColor(Color.GREEN);
+						
 					}
 					else {
 						cell.setFillColor(Color.PINK);
@@ -192,7 +224,57 @@ public Response readFileAndReturnJSON(String fn)
 				m++;
 			}
 
-			table.draw(); */
+			table.draw(); 
+			
+			int yStart_second = 200;
+			int yStartNewPage_second = 200;
+			BaseTable table2 = new BaseTable(yStart_second, yStartNewPage_second, bottomMargin, tableWidth, 40, document, page, true,
+					true);
+			Row<PDPage> headerRow2 = table2.createRow(25f);
+			Cell<PDPage> cell2;
+			cell2 = headerRow2.createCell(15f, "Wrong Facts");
+			cell2.setFontSize(cell_font);
+			cell2.setFont(PDType1Font.HELVETICA_BOLD);
+			
+			cell2.setFillColor(Color.YELLOW);
+			cell2.setAlign(HorizontalAlignment.CENTER);
+			cell2.setValign(VerticalAlignment.MIDDLE);
+			for(Wrong  w:this.wrong_list)
+			{
+				Row<PDPage> row = table2.createRow(15f);	
+				cell = row.createCell(cell_width,w.getQ1());
+				cell.setValign(VerticalAlignment.MIDDLE);
+				cell.setAlign(HorizontalAlignment.CENTER);
+				cell.setFillColor(Color.WHITE);
+				cell.setFontSize(cell_font);
+				
+				cell = row.createCell(cell_width,w.getOp());
+				cell.setValign(VerticalAlignment.MIDDLE);
+				cell.setAlign(HorizontalAlignment.CENTER);
+				cell.setFillColor(Color.WHITE);
+				cell.setFontSize(cell_font);
+				
+				cell = row.createCell(cell_width,w.getQ2());
+				cell.setValign(VerticalAlignment.MIDDLE);
+				cell.setAlign(HorizontalAlignment.CENTER);
+				cell.setFillColor(Color.WHITE);
+				cell.setFontSize(cell_font);
+				
+				cell = row.createCell(cell_width,"=");
+				cell.setValign(VerticalAlignment.MIDDLE);
+				cell.setAlign(HorizontalAlignment.CENTER);
+				cell.setFillColor(Color.WHITE);
+				cell.setFontSize(cell_font);
+				
+
+				cell = row.createCell(cell_width,w.getStudentAnswer());
+				cell.setValign(VerticalAlignment.MIDDLE);
+				cell.setAlign(HorizontalAlignment.CENTER);
+				cell.setFillColor(Color.WHITE);
+				cell.setFontSize(cell_font);
+			}
+
+			table2.draw(); 
 			File file = new File("TestSimple.pdf");
 			System.out.println("Sample file saved at : " + file.getAbsolutePath());
 			Files.createParentDirs(file);

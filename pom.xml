@@ -6,9 +6,7 @@
   <name>reporting services</name>
   <description>used to create pdf report</description>
     <build>
-        <resources>
-            <resource>src/main/resources</resource>
-        </resources>
+      
     </build>
    <dependencies>
 	 <dependency>
