@@ -132,7 +132,7 @@ public Response readFileAndReturnJSON(String fn)
 			float scale = 0.75f;
 			int begin_x = 570;
 			int begin_y = 570;
-			contentStream.drawImage(pdImage, 20, 530, pdImage.getWidth()*scale, pdImage.getHeight()*scale);
+			contentStream.drawImage(pdImage, 30, 530, pdImage.getWidth()*scale, pdImage.getHeight()*scale);
 			contentStream.beginText();
 			contentStream.setFont(font, 12.0f);
 			contentStream.newLineAtOffset(begin_x,begin_y);
@@ -157,8 +157,58 @@ public Response readFileAndReturnJSON(String fn)
 			contentStream.drawLine(0, 540, page.getBleedBox().getWidth(), 540);
 			contentStream.close();
 			
-		
+			float margin = 200;
+			float tableWidth_summary = page.getMediaBox().getWidth() - (2 * margin);
+			float yStartNewPage_summary = page.getMediaBox().getHeight() - (2 * 40);
+			float yStart_summary = yStartNewPage_summary;
+			float bottomMargin = 10;
+			float cell_font = 11.0f;
+// Create a new font object selecting one of the PDF base fonts
 
+			// Start a new content stream which will "hold" the to be created content
+			float cell_width_summary = 100/2f;
+
+			BaseTable table_summary = new BaseTable(yStart_summary, yStartNewPage_summary, bottomMargin, tableWidth_summary, margin, document, page, true,
+					true);
+			Row<PDPage> headerRow_summary; 
+			headerRow_summary = table_summary.createRow(25f);
+			
+			Cell<PDPage> cell_summary;
+			cell_summary = headerRow_summary.createCell(cell_width_summary, "Accuracy");
+			cell_summary.setFontSize(cell_font);
+			cell_summary.setFont(PDType1Font.HELVETICA_BOLD);
+			
+			cell_summary.setFillColor(Color.WHITE);
+			cell_summary.setAlign(HorizontalAlignment.CENTER);
+			cell_summary.setValign(VerticalAlignment.MIDDLE);
+			//
+			cell_summary = headerRow_summary.createCell(cell_width_summary, "12.9");
+			cell_summary.setFontSize(cell_font);
+			cell_summary.setFont(PDType1Font.HELVETICA_BOLD);
+			
+			cell_summary.setFillColor(Color.WHITE);
+			cell_summary.setAlign(HorizontalAlignment.CENTER);
+			cell_summary.setValign(VerticalAlignment.MIDDLE);
+			
+			headerRow_summary = table_summary.createRow(25f);
+			cell_summary = headerRow_summary.createCell(cell_width_summary, "Fact per time");
+			cell_summary.setFontSize(cell_font);
+			cell_summary.setFont(PDType1Font.HELVETICA_BOLD);
+			
+			cell_summary.setFillColor(Color.WHITE);
+			cell_summary.setAlign(HorizontalAlignment.CENTER);
+			cell_summary.setValign(VerticalAlignment.MIDDLE);
+			
+			cell_summary = headerRow_summary.createCell(cell_width_summary, "12.9");
+			cell_summary.setFontSize(cell_font);
+			cell_summary.setFont(PDType1Font.HELVETICA_BOLD);
+			
+			cell_summary.setFillColor(Color.WHITE);
+			cell_summary.setAlign(HorizontalAlignment.CENTER);
+			cell_summary.setValign(VerticalAlignment.MIDDLE);
+			table_summary.draw();
+		
+/*
 			//Initialize table
 			float margin = 40;
 			float tableWidth = page.getMediaBox().getWidth() - (2 * margin);
@@ -223,55 +273,75 @@ public Response readFileAndReturnJSON(String fn)
 				}
 				m++;
 			}
-
-			table.draw(); 
-			
-			int yStart_second = 200;
-			int yStartNewPage_second = 200;
-			BaseTable table2 = new BaseTable(yStart_second, yStartNewPage_second, bottomMargin, tableWidth, 40, document, page, true,
+		*/
+			//table.draw(); 
+			float margin_2 = 100;
+			float tableWidth_2 = page.getMediaBox().getWidth() - (2 * margin_2);
+			float cell_width_2 = 100/5f; // the cell width is calculated in percentage . So its 100 / 5 , not the table width / 5;
+			float cell_height_2 = 25f;
+			float yStart_second = 200;
+			float yStartNewPage_second = page.getMediaBox().getHeight() - (2 * 40);
+			/*
+			float yStartNewPage_second = page.getMediaBox().getHeight() - (2 * margin_2);;
+			float yStart_second = page.getMediaBox().getHeight() - (2 * margin_2);;*/
+			float cell_font_2 = 11.0f;
+			BaseTable table2 = new BaseTable(yStart_second, yStartNewPage_second, bottomMargin, tableWidth_2, margin_2, document, page, true,
 					true);
-			Row<PDPage> headerRow2 = table2.createRow(25f);
+		
+			//Row<PDPage> headerRow2 = table2.createRow(35f);
 			Cell<PDPage> cell2;
-			cell2 = headerRow2.createCell(15f, "Wrong Facts");
-			cell2.setFontSize(cell_font);
-			cell2.setFont(PDType1Font.HELVETICA_BOLD);
-			
-			cell2.setFillColor(Color.YELLOW);
-			cell2.setAlign(HorizontalAlignment.CENTER);
-			cell2.setValign(VerticalAlignment.MIDDLE);
+			Row<PDPage> headerRow_error;
+				int q =0;
+				headerRow_error = table2.createRow(cell_height_2);
+				cell2 = headerRow_error.createCell(100, "List Of Wrong Facts");
+				cell2.setFont(PDType1Font.HELVETICA_BOLD);
+				cell2.setValign(VerticalAlignment.MIDDLE);
+				cell2.setAlign(HorizontalAlignment.CENTER);
+				cell2.setFillColor(Color.BLACK);
+				cell2.setTextColor(Color.WHITE);
+				cell2.setFontSize(cell_font_2);	
+				table2.addHeaderRow(headerRow_error);
+
 			for(Wrong  w:this.wrong_list)
 			{
-				Row<PDPage> row = table2.createRow(15f);	
-				cell = row.createCell(cell_width,w.getQ1());
-				cell.setValign(VerticalAlignment.MIDDLE);
-				cell.setAlign(HorizontalAlignment.CENTER);
-				cell.setFillColor(Color.WHITE);
-				cell.setFontSize(cell_font);
+				Row<PDPage> row = table2.createRow(cell_height_2);
 				
-				cell = row.createCell(cell_width,w.getOp());
-				cell.setValign(VerticalAlignment.MIDDLE);
-				cell.setAlign(HorizontalAlignment.CENTER);
-				cell.setFillColor(Color.WHITE);
-				cell.setFontSize(cell_font);
+				cell2 = row.createCell(cell_width_2,w.getQ1());
+				cell2.setFillColor(Color.WHITE);
+				cell2.setFontSize(cell_font_2);
+				cell2.setValign(VerticalAlignment.MIDDLE);
+				cell2.setAlign(HorizontalAlignment.CENTER);
 				
-				cell = row.createCell(cell_width,w.getQ2());
-				cell.setValign(VerticalAlignment.MIDDLE);
-				cell.setAlign(HorizontalAlignment.CENTER);
-				cell.setFillColor(Color.WHITE);
-				cell.setFontSize(cell_font);
+			
 				
-				cell = row.createCell(cell_width,"=");
-				cell.setValign(VerticalAlignment.MIDDLE);
-				cell.setAlign(HorizontalAlignment.CENTER);
-				cell.setFillColor(Color.WHITE);
-				cell.setFontSize(cell_font);
+				System.out.println(cell2.getHeight());
+				q++;
+				
+			
+				cell2 = row.createCell(cell_width_2,w.getOp());
+				cell2.setValign(VerticalAlignment.MIDDLE);
+				cell2.setAlign(HorizontalAlignment.CENTER);
+				cell2.setFillColor(Color.WHITE);
+				cell2.setFontSize(cell_font_2);
+				
+				cell2 = row.createCell(cell_width_2,w.getQ2());
+				cell2.setValign(VerticalAlignment.MIDDLE);
+				cell2.setAlign(HorizontalAlignment.CENTER);
+				cell2.setFillColor(Color.WHITE);
+				cell2.setFontSize(cell_font_2);
+				
+				cell2 = row.createCell(cell_width_2,"1");
+				cell2.setValign(VerticalAlignment.MIDDLE);
+				cell2.setAlign(HorizontalAlignment.CENTER);
+				cell2.setFillColor(Color.WHITE);
+				cell2.setFontSize(cell_font_2);
 				
 
-				cell = row.createCell(cell_width,w.getStudentAnswer());
-				cell.setValign(VerticalAlignment.MIDDLE);
-				cell.setAlign(HorizontalAlignment.CENTER);
-				cell.setFillColor(Color.WHITE);
-				cell.setFontSize(cell_font);
+				cell2 = row.createCell(cell_width_2,w.getStudentAnswer());
+				cell2.setValign(VerticalAlignment.MIDDLE);
+				cell2.setAlign(HorizontalAlignment.CENTER);
+				cell2.setFillColor(Color.WHITE);
+				cell2.setFontSize(cell_font_2); 
 			}
 
 			table2.draw(); 
