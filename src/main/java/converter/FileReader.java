@@ -157,33 +157,33 @@ public Response readFileAndReturnJSON(String fn)
 			contentStream.drawLine(0, 540, page.getBleedBox().getWidth(), 540);
 			contentStream.close();
 			
-			float margin = 200;
-			float tableWidth_summary = page.getMediaBox().getWidth() - (2 * margin);
+			float margin_summary = 200;
+			float tableWidth_summary = page.getMediaBox().getWidth() - (2 * margin_summary);
 			float yStartNewPage_summary = page.getMediaBox().getHeight() - (2 * 40);
 			float yStart_summary = yStartNewPage_summary;
 			float bottomMargin = 10;
-			float cell_font = 11.0f;
+			float cell_font_summary = 11.0f;
 // Create a new font object selecting one of the PDF base fonts
 
 			// Start a new content stream which will "hold" the to be created content
 			float cell_width_summary = 100/2f;
 
-			BaseTable table_summary = new BaseTable(yStart_summary, yStartNewPage_summary, bottomMargin, tableWidth_summary, margin, document, page, true,
+			BaseTable table_summary = new BaseTable(yStart_summary, yStartNewPage_summary, bottomMargin, tableWidth_summary, margin_summary, document, page, true,
 					true);
 			Row<PDPage> headerRow_summary; 
 			headerRow_summary = table_summary.createRow(25f);
 			
 			Cell<PDPage> cell_summary;
 			cell_summary = headerRow_summary.createCell(cell_width_summary, "Accuracy");
-			cell_summary.setFontSize(cell_font);
+			cell_summary.setFontSize(cell_font_summary);
 			cell_summary.setFont(PDType1Font.HELVETICA_BOLD);
 			
 			cell_summary.setFillColor(Color.WHITE);
 			cell_summary.setAlign(HorizontalAlignment.CENTER);
 			cell_summary.setValign(VerticalAlignment.MIDDLE);
 			//
-			cell_summary = headerRow_summary.createCell(cell_width_summary, "12.9");
-			cell_summary.setFontSize(cell_font);
+			cell_summary = headerRow_summary.createCell(cell_width_summary, "14");
+			cell_summary.setFontSize(cell_font_summary);
 			cell_summary.setFont(PDType1Font.HELVETICA_BOLD);
 			
 			cell_summary.setFillColor(Color.WHITE);
@@ -192,7 +192,7 @@ public Response readFileAndReturnJSON(String fn)
 			
 			headerRow_summary = table_summary.createRow(25f);
 			cell_summary = headerRow_summary.createCell(cell_width_summary, "Fact per time");
-			cell_summary.setFontSize(cell_font);
+			cell_summary.setFontSize(cell_font_summary);
 			cell_summary.setFont(PDType1Font.HELVETICA_BOLD);
 			
 			cell_summary.setFillColor(Color.WHITE);
@@ -200,7 +200,7 @@ public Response readFileAndReturnJSON(String fn)
 			cell_summary.setValign(VerticalAlignment.MIDDLE);
 			
 			cell_summary = headerRow_summary.createCell(cell_width_summary, "12.9");
-			cell_summary.setFontSize(cell_font);
+			cell_summary.setFontSize(cell_font_summary);
 			cell_summary.setFont(PDType1Font.HELVETICA_BOLD);
 			
 			cell_summary.setFillColor(Color.WHITE);
@@ -208,20 +208,21 @@ public Response readFileAndReturnJSON(String fn)
 			cell_summary.setValign(VerticalAlignment.MIDDLE);
 			table_summary.draw();
 		
-/*
+
 			//Initialize table
 			float margin = 40;
+			float top_margin_matrix = 80;
 			float tableWidth = page.getMediaBox().getWidth() - (2 * margin);
-			float yStartNewPage = page.getMediaBox().getHeight() - (2 * margin);
+			float yStartNewPage = page.getMediaBox().getHeight() - (2 * 80);
 			float yStart = yStartNewPage;
-			float bottomMargin = 0;
+			float bottomMargin_matrix = 0;
 			float cell_font = 11.0f;
 // Create a new font object selecting one of the PDF base fonts
 
 			// Start a new content stream which will "hold" the to be created content
 			float cell_width = 100/11f;
 
-			BaseTable table = new BaseTable(yStart, yStartNewPage, bottomMargin, tableWidth, margin, document, page, true,
+			BaseTable table = new BaseTable(yStart, yStartNewPage,top_margin_matrix, bottomMargin_matrix, tableWidth, margin, document, page, true,
 					true);
 			
 
@@ -273,13 +274,14 @@ public Response readFileAndReturnJSON(String fn)
 				}
 				m++;
 			}
-		*/
-			//table.draw(); 
+		
+			table.draw(); 
 			float margin_2 = 100;
+			float margin_top_error = 200;
 			float tableWidth_2 = page.getMediaBox().getWidth() - (2 * margin_2);
 			float cell_width_2 = 100/5f; // the cell width is calculated in percentage . So its 100 / 5 , not the table width / 5;
 			float cell_height_2 = 25f;
-			float yStart_second = 200;
+			float yStart_second = 100;
 			float yStartNewPage_second = page.getMediaBox().getHeight() - (2 * 40);
 			/*
 			float yStartNewPage_second = page.getMediaBox().getHeight() - (2 * margin_2);;
