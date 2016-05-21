@@ -83,7 +83,14 @@ public Response readFileAndReturnJSON(String fn)
 			{
 				Questions data = this.findInQuestionList( Integer.toString(row), Integer.toString(col));
 				if(data == null)
+				{
+					Questions fake = new Questions();
+					String[] q = {row+"", "+", col+""};
+					fake.setQ(q);
+					fake.setStudentAnswer("-");
+					fake.setRight(false);
 					System.out.println("row" + row + "column" + col);
+				}
 				//System.out.println("row" + row + "column" + col);
 				constructed_result.add(data);
 			//	System.out.println(data.isRight());
