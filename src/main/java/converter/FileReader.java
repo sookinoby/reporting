@@ -4,14 +4,17 @@ import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.util.ArrayList;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 
 import com.google.common.io.Files;
@@ -20,8 +23,10 @@ import com.google.gson.Gson;
 import be.quodlibet.boxable.BaseTable;
 import be.quodlibet.boxable.Cell;
 import be.quodlibet.boxable.HorizontalAlignment;
+import be.quodlibet.boxable.ImageCell;
 import be.quodlibet.boxable.Row;
 import be.quodlibet.boxable.VerticalAlignment;
+import be.quodlibet.boxable.utils.ImageUtils;
 import pojo.reporting.com.r2m.Questions;
 import pojo.reporting.com.r2m.Response;
 import pojo.reporting.com.r2m.Wrong;
@@ -36,6 +41,8 @@ private int no_of_correct = 0;
 float average_time_per_fact = 0;
 private String operatorSymbol;
 private	float accuracy;
+private String child_name;
+private String child_grade;
 public Response readFileAndReturnJSON(String fn) 
 {
 	this.fileName = fn;
@@ -53,6 +60,8 @@ public Response readFileAndReturnJSON(String fn)
 
 		 Response res = gson.fromJson(br, Response.class);
 		 this.questions = res.getGameData().getQuestionList();
+		 this.child_grade = res.getStudentGrade();
+		 this.child_name = res.getStudentName();
 		 return res;
 	}
 	catch(Exception e)
@@ -90,8 +99,9 @@ public Response readFileAndReturnJSON(String fn)
 					this.operatorSymbol = data.getQ()[1];
 				}
 				else if(data.isRight()) {
-
-					this.average_time_per_fact = (this.average_time_per_fact * this.no_of_correct + data.getTime()) / (this.average_time_per_fact+1);
+				//	System.out.println("par" + data.getTime());
+					this.average_time_per_fact = (this.average_time_per_fact * this.no_of_correct + data.getTime()) / (this.no_of_correct+1);
+				//	System.out.println("avg" + this.average_time_per_fact );
 					this.no_of_correct = this.no_of_correct + 1;
 					this.operatorSymbol = data.getQ()[1];
 				}
@@ -99,8 +109,14 @@ public Response readFileAndReturnJSON(String fn)
 			}
 			table_result.add(constructed_result);
 		}
-		this.average_time_per_fact = Math.round( (this.average_time_per_fact / 1000) * 100) / 100;
-		this.accuracy = Math.round((this.no_of_correct / this.questions.size()) * 100);
+		System.out.println(this.average_time_per_fact);
+		this.average_time_per_fact = this.average_time_per_fact  / 1000;
+		
+		this.accuracy = this.no_of_correct / (float)this.questions.size();
+		this.accuracy = this.accuracy * 100;
+		System.out.println(this.average_time_per_fact);
+		System.out.println(this.accuracy);
+		
 	}
 
 	public Questions findInQuestionList(String mapRow,String mapCol)
@@ -113,20 +129,37 @@ public Response readFileAndReturnJSON(String fn)
 		}
 		return null;
 	}
+	
+	public Cell<PDPage> createCell(Row<PDPage> headerRow_summary,float cell_width_summary,String text,float cell_font_summary_size
+			, HorizontalAlignment halgin, VerticalAlignment valgin,PDFont font,Color color)
+	{
+		Cell<PDPage> cell_summary;
+		cell_summary = headerRow_summary.createCell(cell_width_summary,text);
+		cell_summary.setFontSize(cell_font_summary_size);
+		cell_summary.setFont(font);
+		cell_summary.setFillColor(color);
+		cell_summary.setAlign(halgin);
+		cell_summary.setValign(valgin);
+		return cell_summary;
+		
+	}
+	
 
 	public void createPdf()
 	{
 		try {
 			// Create a document and add a page to it
+			
 			PDDocument document = new PDDocument();
 			PDPage page = new PDPage();
 			page.setMediaBox(new PDRectangle(PDRectangle.A4.getHeight(), PDRectangle.A4.getWidth()));
 			document.addPage(page);
-			PDFont font = PDType1Font.HELVETICA_BOLD;
-			String path = getClass().getResource("/r2m_logo1.png").getPath();
-		//	BufferedImage bckimg = ImageIO.read(new File("/Users/alexaravind/Desktop/ideaProjects/reporting/target/classes/r2m_logo2.png"));
-
 		
+			PDFont font = PDType1Font.TIMES_ROMAN;
+			
+			String path = getClass().getResource("/r2m_logo1.png").getPath();
+			File equal_sign = new File(getClass().getResource("/not-equal.png").toURI());
+			
 			PDImageXObject pdImage = PDImageXObject.createFromFile(path, document);
 			PDPageContentStream contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true);
 			float scale = 0.75f;
@@ -141,7 +174,7 @@ public Response readFileAndReturnJSON(String fn)
 			
 			contentStream.beginText();
 			contentStream.newLineAtOffset(begin_x + 100,begin_y);
-			contentStream.showText("Suresh");
+			contentStream.showText(this.child_name);
 			contentStream.endText();
 			
 			contentStream.beginText();
@@ -151,7 +184,7 @@ public Response readFileAndReturnJSON(String fn)
 			
 			contentStream.beginText();
 			contentStream.newLineAtOffset(begin_x+100,begin_y-20);
-			contentStream.showText("4");
+			contentStream.showText(this.child_grade);
 			contentStream.endText();
 			
 			contentStream.drawLine(0, 540, page.getBleedBox().getWidth(), 540);
@@ -170,42 +203,19 @@ public Response readFileAndReturnJSON(String fn)
 
 			BaseTable table_summary = new BaseTable(yStart_summary, yStartNewPage_summary, bottomMargin, tableWidth_summary, margin_summary, document, page, true,
 					true);
-			Row<PDPage> headerRow_summary; 
-			headerRow_summary = table_summary.createRow(25f);
-			
 			Cell<PDPage> cell_summary;
-			cell_summary = headerRow_summary.createCell(cell_width_summary, "Accuracy");
-			cell_summary.setFontSize(cell_font_summary);
-			cell_summary.setFont(PDType1Font.HELVETICA_BOLD);
+			Row<PDPage> headerRow_summary; 
 			
-			cell_summary.setFillColor(Color.WHITE);
-			cell_summary.setAlign(HorizontalAlignment.CENTER);
-			cell_summary.setValign(VerticalAlignment.MIDDLE);
-			//
-			cell_summary = headerRow_summary.createCell(cell_width_summary, "14");
-			cell_summary.setFontSize(cell_font_summary);
-			cell_summary.setFont(PDType1Font.HELVETICA_BOLD);
 			
-			cell_summary.setFillColor(Color.WHITE);
-			cell_summary.setAlign(HorizontalAlignment.CENTER);
-			cell_summary.setValign(VerticalAlignment.MIDDLE);
+		
+			headerRow_summary = table_summary.createRow(25f);
+			cell_summary = createCell(headerRow_summary,cell_width_summary,"Accuracy",cell_font_summary,HorizontalAlignment.CENTER,VerticalAlignment.MIDDLE,PDType1Font.TIMES_BOLD,Color.WHITE);
+			cell_summary = createCell(headerRow_summary,cell_width_summary,String.format("%.2f", this.accuracy),cell_font_summary,HorizontalAlignment.CENTER,VerticalAlignment.MIDDLE,PDType1Font.TIMES_BOLD,Color.WHITE);
 			
 			headerRow_summary = table_summary.createRow(25f);
-			cell_summary = headerRow_summary.createCell(cell_width_summary, "Fact per time");
-			cell_summary.setFontSize(cell_font_summary);
-			cell_summary.setFont(PDType1Font.HELVETICA_BOLD);
-			
-			cell_summary.setFillColor(Color.WHITE);
-			cell_summary.setAlign(HorizontalAlignment.CENTER);
-			cell_summary.setValign(VerticalAlignment.MIDDLE);
-			
-			cell_summary = headerRow_summary.createCell(cell_width_summary, "12.9");
-			cell_summary.setFontSize(cell_font_summary);
-			cell_summary.setFont(PDType1Font.HELVETICA_BOLD);
-			
-			cell_summary.setFillColor(Color.WHITE);
-			cell_summary.setAlign(HorizontalAlignment.CENTER);
-			cell_summary.setValign(VerticalAlignment.MIDDLE);
+			cell_summary = createCell(headerRow_summary,cell_width_summary,"Fact per time",cell_font_summary,HorizontalAlignment.CENTER,VerticalAlignment.MIDDLE,PDType1Font.TIMES_BOLD,Color.WHITE);
+			cell_summary = createCell(headerRow_summary,cell_width_summary,String.format("%.2f", this.average_time_per_fact),cell_font_summary,HorizontalAlignment.CENTER,VerticalAlignment.MIDDLE,PDType1Font.TIMES_BOLD,Color.WHITE);
+	
 			table_summary.draw();
 		
 
@@ -225,42 +235,23 @@ public Response readFileAndReturnJSON(String fn)
 			BaseTable table = new BaseTable(yStart, yStartNewPage,top_margin_matrix, bottomMargin_matrix, tableWidth, margin, document, page, true,
 					true);
 			
-
-
-
 //Create Header row
 			Row<PDPage> headerRow = table.createRow(25f);
 			Cell<PDPage> cell;
-			cell = headerRow.createCell(cell_width, this.operatorSymbol);
-			cell.setFontSize(cell_font);
-			cell.setFont(PDType1Font.HELVETICA_BOLD);
-			
-			cell.setFillColor(Color.YELLOW);
-			cell.setAlign(HorizontalAlignment.CENTER);
-			cell.setValign(VerticalAlignment.MIDDLE);
+			cell = createCell(headerRow,cell_width,this.operatorSymbol,cell_font_summary,HorizontalAlignment.CENTER,VerticalAlignment.MIDDLE,PDType1Font.TIMES_BOLD,Color.YELLOW);
+		
 			for(int i=0; i<questions.size()/10;i++)
 			{	
-				
-				cell = headerRow.createCell(cell_width, Integer.toString(i));
-				cell.setFontSize(cell_font);
-				cell.setFont(PDType1Font.HELVETICA_BOLD);
-				cell.setFillColor(Color.YELLOW);
-				cell.setAlign(HorizontalAlignment.CENTER);
-				cell.setValign(VerticalAlignment.MIDDLE);
+				cell = createCell(headerRow,cell_width,Integer.toString(i),cell_font_summary,HorizontalAlignment.CENTER,VerticalAlignment.MIDDLE,PDType1Font.TIMES_BOLD,Color.YELLOW);
 			}
 			table.addHeaderRow(headerRow);
 			int m =0;
 			for (ArrayList<Questions> questions_row: table_result) {
-				Row<PDPage> row = table.createRow(25f);
-				
-					cell = row.createCell(cell_width,Integer.toString(m));
-					cell.setValign(VerticalAlignment.MIDDLE);
-					cell.setAlign(HorizontalAlignment.CENTER);
-					cell.setFillColor(Color.WHITE);
-					cell.setFontSize(cell_font);
+					Row<PDPage> row = table.createRow(25f);
+					cell = createCell(row,cell_width,Integer.toString(m),cell_font,HorizontalAlignment.CENTER,VerticalAlignment.MIDDLE,PDType1Font.TIMES_BOLD,Color.YELLOW);
+					
 				for(Questions q: questions_row) {
-
-					cell = row.createCell(cell_width, q.getStudentAnswer());
+					cell = createCell(row,cell_width,q.getStudentAnswer(),cell_font,HorizontalAlignment.CENTER,VerticalAlignment.MIDDLE,PDType1Font.TIMES_BOLD,Color.YELLOW);
 					cell.setFontSize(cell_font);
 					if(q.isRight()) {
 						cell.setFillColor(Color.GREEN);
@@ -293,57 +284,27 @@ public Response readFileAndReturnJSON(String fn)
 			//Row<PDPage> headerRow2 = table2.createRow(35f);
 			Cell<PDPage> cell2;
 			Row<PDPage> headerRow_error;
-				int q =0;
+			//	int q =0;
 				headerRow_error = table2.createRow(cell_height_2);
-				cell2 = headerRow_error.createCell(100, "List Of Wrong Facts");
-				cell2.setFont(PDType1Font.HELVETICA_BOLD);
-				cell2.setValign(VerticalAlignment.MIDDLE);
-				cell2.setAlign(HorizontalAlignment.CENTER);
-				cell2.setFillColor(Color.BLACK);
-				cell2.setTextColor(Color.WHITE);
-				cell2.setFontSize(cell_font_2);	
-				table2.addHeaderRow(headerRow_error);
-
+				cell2 = createCell(headerRow_error,100,"List Of Wrong Facts",cell_font_2,HorizontalAlignment.CENTER,VerticalAlignment.MIDDLE,PDType1Font.TIMES_BOLD,Color.WHITE);
+			//	table2.addHeaderRow(headerRow_error);
 			for(Wrong  w:this.wrong_list)
 			{
 				Row<PDPage> row = table2.createRow(cell_height_2);
 				
-				cell2 = row.createCell(cell_width_2,w.getQ1());
-				cell2.setFillColor(Color.WHITE);
-				cell2.setFontSize(cell_font_2);
-				cell2.setValign(VerticalAlignment.MIDDLE);
-				cell2.setAlign(HorizontalAlignment.CENTER);
+				cell2 = createCell(row,cell_width_2,w.getQ1(),cell_font_2,HorizontalAlignment.CENTER,VerticalAlignment.MIDDLE,PDType1Font.TIMES_BOLD,Color.WHITE);
+			//	System.out.println(cell2.getHeight());
+			//	q++;
 				
-			
-				
-				System.out.println(cell2.getHeight());
-				q++;
-				
-			
-				cell2 = row.createCell(cell_width_2,w.getOp());
-				cell2.setValign(VerticalAlignment.MIDDLE);
-				cell2.setAlign(HorizontalAlignment.CENTER);
-				cell2.setFillColor(Color.WHITE);
-				cell2.setFontSize(cell_font_2);
-				
-				cell2 = row.createCell(cell_width_2,w.getQ2());
-				cell2.setValign(VerticalAlignment.MIDDLE);
-				cell2.setAlign(HorizontalAlignment.CENTER);
-				cell2.setFillColor(Color.WHITE);
-				cell2.setFontSize(cell_font_2);
-				
-				cell2 = row.createCell(cell_width_2,"1");
-				cell2.setValign(VerticalAlignment.MIDDLE);
-				cell2.setAlign(HorizontalAlignment.CENTER);
-				cell2.setFillColor(Color.WHITE);
-				cell2.setFontSize(cell_font_2);
-				
+				cell2 = createCell(row,cell_width_2,w.getOp(),cell_font_2,HorizontalAlignment.CENTER,VerticalAlignment.MIDDLE,PDType1Font.TIMES_BOLD,Color.WHITE);
+				cell2 = createCell(row,cell_width_2,w.getQ2(),cell_font_2,HorizontalAlignment.CENTER,VerticalAlignment.MIDDLE,PDType1Font.TIMES_BOLD,Color.WHITE);
+				ImageCell  cell_image;
+				cell_image = row.createImageCell(cell_width_2, ImageUtils.readImage(equal_sign));
+				cell_image.setAlign(HorizontalAlignment.CENTER);
+				cell_image.setValign(VerticalAlignment.MIDDLE);
+				//cell2 = createCell(row,cell_width_2,"\u2260",cell_font_2,HorizontalAlignment.CENTER,VerticalAlignment.MIDDLE,font2,Color.WHITE);
+				cell2 = createCell(row,cell_width_2,w.getStudentAnswer(),cell_font_2,HorizontalAlignment.CENTER,VerticalAlignment.MIDDLE,PDType1Font.TIMES_BOLD,Color.WHITE);
 
-				cell2 = row.createCell(cell_width_2,w.getStudentAnswer());
-				cell2.setValign(VerticalAlignment.MIDDLE);
-				cell2.setAlign(HorizontalAlignment.CENTER);
-				cell2.setFillColor(Color.WHITE);
-				cell2.setFontSize(cell_font_2); 
 			}
 
 			table2.draw(); 
@@ -359,6 +320,8 @@ public Response readFileAndReturnJSON(String fn)
 		}
 
 	}
+
+
 
 }
 
